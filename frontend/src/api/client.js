@@ -17,6 +17,16 @@ export const api = {
       return r.json()
     }),
 
+  updateStock: (ticker, fields) =>
+    fetch(`${BASE_URL}/api/stocks/${ticker}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(fields),
+    }).then(r => {
+      if (!r.ok) throw new Error(`Failed to update ${ticker}: ${r.status}`)
+      return r.json()
+    }),
+
   deleteStock: (ticker) =>
     fetch(`${BASE_URL}/api/stocks/${ticker}`, { method: 'DELETE' }).then(r => {
       if (!r.ok) throw new Error(`Failed to delete ${ticker}: ${r.status}`)

@@ -5,6 +5,15 @@ from pydantic import BaseModel
 class StockEntry(BaseModel):
     ticker: str
     list_type: Literal["owned", "watchlist"]
+    avg_buy_price: Optional[float] = None
+    quantity: Optional[float] = None
+    target_price: Optional[float] = None
+
+
+class StockUpdateRequest(BaseModel):
+    avg_buy_price: Optional[float] = None
+    quantity: Optional[float] = None
+    target_price: Optional[float] = None
 
 
 class StockListResponse(BaseModel):

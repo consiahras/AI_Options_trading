@@ -57,6 +57,11 @@ export default function App() {
     catch (err) { alert(err.message || 'Failed to add stock') }
   }
 
+  const handleUpdateStock = async (ticker, fields) => {
+    try { const data = await api.updateStock(ticker, fields); setStocks(data.stocks || []) }
+    catch (err) { alert(err.message || 'Failed to update stock') }
+  }
+
   const handleDeleteStock = async (ticker) => {
     try {
       const data = await api.deleteStock(ticker)
@@ -114,12 +119,13 @@ export default function App() {
       {/* Body */}
       <div className="flex flex-1">
         {/* Sidebar — sticky so it stays visible while page scrolls */}
-        <aside className="flex-none w-32 bg-slate-50 border-r border-gray-200 sticky top-[49px] self-start h-[calc(100vh-49px)] overflow-y-auto">
+        <aside className="flex-none w-52 bg-slate-50 border-r border-gray-200 sticky top-[49px] self-start h-[calc(100vh-49px)] overflow-y-auto">
           <Sidebar
             stocks={stocks}
             selectedTicker={selectedTicker}
             onSelect={handleSelectTicker}
             onAdd={handleAddStock}
+            onUpdate={handleUpdateStock}
             onDelete={handleDeleteStock}
           />
         </aside>
