@@ -114,7 +114,7 @@ export default function App() {
       {/* Body */}
       <div className="flex flex-1 overflow-hidden">
         {/* Sidebar */}
-        <aside className="flex-none w-44 bg-slate-50 border-r border-gray-200 overflow-y-auto">
+        <aside className="flex-none w-32 bg-slate-50 border-r border-gray-200 overflow-y-auto">
           <Sidebar
             stocks={stocks}
             selectedTicker={selectedTicker}

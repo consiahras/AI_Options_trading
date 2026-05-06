@@ -245,7 +245,7 @@ export default function StockChart({ ticker, data, loading, error, stochSignal, 
         onMouseLeave={handleMouseUp}
       >
         <ResponsiveContainer width="100%" height="100%">
-          <ComposedChart data={visibleData} margin={{ top: 8, right: 130, left: 10, bottom: 5 }}>
+          <ComposedChart data={visibleData} margin={{ top: 8, right: 95, left: 10, bottom: 5 }}>
             <defs>
               <linearGradient id="priceGrad" x1="0" y1="0" x2="0" y2="1">
                 <stop offset="5%"  stopColor="#3b82f6" stopOpacity={0.18} />
@@ -318,7 +318,7 @@ export default function StockChart({ ticker, data, loading, error, stochSignal, 
         </div>
         <div className="h-[120px] rounded-lg overflow-hidden" style={{ background: '#ffffff' }}>
           <ResponsiveContainer width="100%" height="100%">
-            <ComposedChart data={visibleData} margin={{ top: 2, right: 130, left: 10, bottom: 5 }}>
+            <ComposedChart data={visibleData} margin={{ top: 2, right: 55, left: 10, bottom: 5 }}>
               <CartesianGrid strokeDasharray="3 3" stroke={GRID_COLOR} />
               <XAxis dataKey="date" ticks={xAxisTicks} tick={{ fill: '#9ca3af', fontSize: 9 }}
                 tickFormatter={tickFormatter} axisLine={AXIS_LINE} tickLine={false} />
@@ -330,9 +330,9 @@ export default function StockChart({ ticker, data, loading, error, stochSignal, 
               <ReferenceArea y1={0}  y2={20}  fill="#dcfce7" fillOpacity={0.4} strokeOpacity={0} />
 
               <ReferenceLine y={80} stroke="#ef4444" strokeDasharray="4 3" strokeOpacity={0.6}
-                label={{ value: 'OB 80', position: 'right', fontSize: 8, fill: '#ef4444', dx: 6 }} />
+                label={{ value: '80', position: 'right', fontSize: 8, fill: '#ef4444', dx: 4 }} />
               <ReferenceLine y={20} stroke="#22c55e" strokeDasharray="4 3" strokeOpacity={0.6}
-                label={{ value: 'OS 20', position: 'right', fontSize: 8, fill: '#22c55e', dx: 6 }} />
+                label={{ value: '20', position: 'right', fontSize: 8, fill: '#22c55e', dx: 4 }} />
 
               <Line type="monotone" dataKey="stoch_k" stroke="#d97706" strokeWidth={1.5}
                 dot={false} name="%K" connectNulls />
