@@ -97,9 +97,9 @@ export default function App() {
   }, [chartData])
 
   return (
-    <div className="flex flex-col h-screen bg-slate-100 text-gray-900 overflow-hidden">
-      {/* Header */}
-      <header className="flex-none flex items-center justify-between px-6 py-3 bg-white border-b border-gray-200 z-10 shadow-sm">
+    <div className="flex flex-col min-h-screen bg-slate-100 text-gray-900">
+      {/* Header — sticky so it stays visible while scrolling */}
+      <header className="sticky top-0 z-20 flex items-center justify-between px-6 py-3 bg-white border-b border-gray-200 shadow-sm">
         <div className="flex items-center gap-3">
           <div className="w-8 h-8 rounded-lg bg-blue-600 flex items-center justify-center text-sm font-bold text-white">
             AI
@@ -112,9 +112,9 @@ export default function App() {
       </header>
 
       {/* Body */}
-      <div className="flex flex-1 overflow-hidden">
-        {/* Sidebar */}
-        <aside className="flex-none w-32 bg-slate-50 border-r border-gray-200 overflow-y-auto">
+      <div className="flex flex-1">
+        {/* Sidebar — sticky so it stays visible while page scrolls */}
+        <aside className="flex-none w-32 bg-slate-50 border-r border-gray-200 sticky top-[49px] self-start h-[calc(100vh-49px)] overflow-y-auto">
           <Sidebar
             stocks={stocks}
             selectedTicker={selectedTicker}
@@ -124,10 +124,10 @@ export default function App() {
           />
         </aside>
 
-        {/* Main content */}
-        <main className="flex-1 flex flex-col overflow-hidden bg-slate-100">
+        {/* Main content — page scrolls naturally */}
+        <main className="flex-1 flex flex-col bg-slate-100">
           {/* Chart area */}
-          <div className="flex-none h-[70vh] border-b border-gray-200 bg-white p-3">
+          <div className="h-[70vh] border-b border-gray-200 bg-white p-3">
             <StockChart
               ticker={selectedTicker}
               data={chartData}
@@ -138,8 +138,8 @@ export default function App() {
             />
           </div>
 
-          {/* Analysis panel — scrollable below */}
-          <div className="flex-1 overflow-y-auto bg-slate-100 p-4">
+          {/* Analysis panel — expands fully, page scrolls to it */}
+          <div className="bg-slate-100 p-4">
             <AnalysisPanel
               ticker={selectedTicker}
               data={analysisData}
