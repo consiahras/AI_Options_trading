@@ -1,3 +1,15 @@
+function Tip({ text, children }) {
+  return (
+    <span className="relative group cursor-help inline-block">
+      {children}
+      <span className="pointer-events-none absolute z-50 opacity-0 group-hover:opacity-100 transition-opacity duration-150 bottom-full left-1/2 -translate-x-1/2 mb-2 w-56 bg-gray-900 text-white text-xs rounded-lg px-3 py-2 shadow-xl text-center leading-relaxed">
+        {text}
+        <span className="absolute top-full left-1/2 -translate-x-1/2 border-[5px] border-transparent border-t-gray-900" />
+      </span>
+    </span>
+  )
+}
+
 function Spinner() {
   return (
     <div className="flex items-center justify-center py-12">
@@ -109,11 +121,11 @@ export default function AnalysisPanel({ ticker, data, loading, error, marketSign
           </p>
         </div>
         <div className="flex gap-4">
-          <div className="bg-gray-50 border border-gray-200 rounded-lg px-4 py-2 text-center min-w-[90px]">
+          <div className="bg-white border border-gray-200 rounded-lg px-4 py-2 text-center min-w-[90px] shadow-sm">
             <p className="text-xs text-gray-500 mb-0.5">Implied Vol</p>
             <p className="text-lg font-bold text-blue-600">{iv?.toFixed(1)}%</p>
           </div>
-          <div className="bg-gray-50 border border-gray-200 rounded-lg px-4 py-2 text-center min-w-[110px]">
+          <div className="bg-white border border-gray-200 rounded-lg px-4 py-2 text-center min-w-[110px] shadow-sm">
             <p className="text-xs text-gray-500 mb-0.5">IV Rank</p>
             <p className={`text-lg font-bold ${iv_rank < 30 ? 'text-green-600' : iv_rank > 50 ? 'text-red-600' : 'text-yellow-600'}`}>
               {iv_rank?.toFixed(1)}
@@ -130,20 +142,38 @@ export default function AnalysisPanel({ ticker, data, loading, error, marketSign
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
         <MetricCard label="Call Premium (30d ATM)" value={`$${call_premium?.toFixed(2)}`}  color="text-green-600" />
         <MetricCard label="Put Premium (30d ATM)"  value={`$${put_premium?.toFixed(2)}`}   color="text-red-600" />
-        <MetricCard label="Delta (Call / Put)"      value={`${greeks?.delta_call?.toFixed(3)} / ${greeks?.delta_put?.toFixed(3)}`}   color="text-blue-600" />
-        <MetricCard label="Theta (Call / Put)"      value={`${greeks?.theta_call?.toFixed(4)} / ${greeks?.theta_put?.toFixed(4)}`}  color="text-purple-600" />
+        <MetricCard
+          label="Delta (Call / Put)" color="text-blue-600"
+          value={`${greeks?.delta_call?.toFixed(3)} / ${greeks?.delta_put?.toFixed(3)}`}
+          tip="Rate of change of option price per $1 move in the stock. Call delta is positive (profits as stock rises); put delta is negative (profits as stock falls). ATM options are near ±0.50."
+        />
+        <MetricCard
+          label="Theta (Call / Put)" color="text-purple-600"
+          value={`${greeks?.theta_call?.toFixed(4)} / ${greeks?.theta_put?.toFixed(4)}`}
+          tip="Daily time decay — how much value the option loses each day as expiry approaches. Negative for buyers (cost), positive for sellers (income). Accelerates near expiry."
+        />
       </div>
 
       {/* Strategy Table */}
-      <div className="overflow-x-auto rounded-xl border border-gray-200">
+      <div className="overflow-x-auto rounded-xl border border-gray-200 shadow-sm bg-white">
         <table className="w-full text-sm">
           <thead>
             <tr className="bg-gray-50 text-gray-500 text-xs uppercase tracking-wide border-b border-gray-200">
-              <th className="text-left px-4 py-3 font-medium">Strategy</th>
-              <th className="text-right px-4 py-3 font-medium">Premium (30d ATM)</th>
-              <th className="text-center px-4 py-3 font-medium">IVR Signal</th>
-              <th className="text-left px-4 py-3 font-medium">S/R Context</th>
-              <th className="text-center px-4 py-3 font-medium">Recommendation</th>
+              <th className="text-left px-4 py-3 font-medium">
+                <Tip text="The options strategy — direction and premium type determine when each is appropriate.">Strategy</Tip>
+              </th>
+              <th className="text-right px-4 py-3 font-medium">
+                <Tip text="Theoretical premium from Black-Scholes at the at-the-money strike with 30 days to expiry. Buyers pay this; sellers collect it.">Premium (30d ATM)</Tip>
+              </th>
+              <th className="text-center px-4 py-3 font-medium">
+                <Tip text="IV Rank (0–100): where current implied volatility sits in its 52-week range. Low (&lt;30) = cheap premiums, favour buying. High (&gt;50) = expensive premiums, favour selling.">IVR Signal</Tip>
+              </th>
+              <th className="text-left px-4 py-3 font-medium">
+                <Tip text="How the current price relates to support/resistance levels and the overall market trend direction.">S/R Context</Tip>
+              </th>
+              <th className="text-center px-4 py-3 font-medium">
+                <Tip text="Combined signal from market direction (MA cross + Stochastic) and IV Rank. CONSIDER = good setup, CAUTION = mixed signals, AVOID = unfavourable conditions.">Recommendation</Tip>
+              </th>
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-100">
@@ -182,10 +212,12 @@ export default function AnalysisPanel({ ticker, data, loading, error, marketSign
   )
 }
 
-function MetricCard({ label, value, color }) {
+function MetricCard({ label, value, color, tip }) {
   return (
-    <div className="bg-gray-50 border border-gray-200 rounded-lg px-4 py-3">
-      <p className="text-xs text-gray-500 mb-1">{label}</p>
+    <div className="bg-white border border-gray-200 rounded-lg px-4 py-3 shadow-sm">
+      <p className="text-xs text-gray-500 mb-1">
+        {tip ? <Tip text={tip}>{label}</Tip> : label}
+      </p>
       <p className={`text-sm font-semibold font-mono ${color}`}>{value}</p>
     </div>
   )
