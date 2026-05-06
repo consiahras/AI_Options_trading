@@ -207,8 +207,6 @@ export default function StockChart({ ticker, data, loading, error, stochSignal, 
     return `${parts[1]}/${parts[2].substring(0, 2)}`
   }
 
-  const srLevels  = useMemo(() =>
-    (data?.sr_levels || []).filter(l => l.level_type !== 'pivot'), [data])
   const fibLevels = useMemo(() => data?.fibonacci_levels || [], [data])
 
   // ── Render guards ─────────────────────────────────────────────────────────
@@ -263,12 +261,6 @@ export default function StockChart({ ticker, data, loading, error, stochSignal, 
             <Tooltip content={<PriceTooltip />} />
             <Legend wrapperStyle={{ fontSize: '11px', color: '#6b7280' }}
               formatter={v => ({ close: 'Price', ma50: 'MA 50', ma100: 'MA 100', ma200: 'MA 200' }[v] || v)} />
-
-            {/* Horizontal S/R zones */}
-            {srLevels.map((lvl, i) => (
-              <ReferenceLine key={`sr-${i}`} y={lvl.price} stroke={lvl.color}
-                strokeDasharray="3 8" strokeWidth={1} strokeOpacity={0.4} />
-            ))}
 
             {/* Fibonacci coloured bands */}
             {fibLevels.length > 1 && fibLevels.slice(0, -1).map((fib, i) => (

@@ -97,9 +97,9 @@ export default function App() {
   }, [chartData])
 
   return (
-    <div className="flex flex-col h-screen bg-white text-gray-900 overflow-hidden">
+    <div className="flex flex-col h-screen bg-slate-100 text-gray-900 overflow-hidden">
       {/* Header */}
-      <header className="flex-none flex items-center justify-between px-6 py-3 bg-white border-b border-gray-200 z-10">
+      <header className="flex-none flex items-center justify-between px-6 py-3 bg-white border-b border-gray-200 z-10 shadow-sm">
         <div className="flex items-center gap-3">
           <div className="w-8 h-8 rounded-lg bg-blue-600 flex items-center justify-center text-sm font-bold text-white">
             AI
@@ -114,7 +114,7 @@ export default function App() {
       {/* Body */}
       <div className="flex flex-1 overflow-hidden">
         {/* Sidebar */}
-        <aside className="flex-none w-60 bg-gray-50 border-r border-gray-200 overflow-y-auto">
+        <aside className="flex-none w-44 bg-slate-50 border-r border-gray-200 overflow-y-auto">
           <Sidebar
             stocks={stocks}
             selectedTicker={selectedTicker}
@@ -125,7 +125,7 @@ export default function App() {
         </aside>
 
         {/* Main content */}
-        <main className="flex-1 flex flex-col overflow-hidden bg-white">
+        <main className="flex-1 flex flex-col overflow-hidden bg-slate-100">
           {/* Chart area */}
           <div className="flex-none h-[580px] border-b border-gray-200 bg-white p-3">
             <StockChart
@@ -139,7 +139,7 @@ export default function App() {
           </div>
 
           {/* Analysis panel */}
-          <div className="flex-1 overflow-y-auto bg-white p-4">
+          <div className="flex-1 overflow-y-auto bg-slate-100 p-4">
             <AnalysisPanel
               ticker={selectedTicker}
               data={analysisData}
