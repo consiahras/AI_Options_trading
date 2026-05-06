@@ -6,6 +6,8 @@ services:
     dns:
       - 8.8.8.8
       - 8.8.4.4
+    volumes:
+      - ./backend/data:/app/data
     restart: unless-stopped
 
   frontend:
