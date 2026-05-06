@@ -76,53 +76,75 @@ def find_horizontal_sr(df: pd.DataFrame, lookback: int = 10, max_levels: int = 5
 # Fibonacci Levels
 # ---------------------------------------------------------------------------
 
-FIBO_RETRACEMENTS = [0.236, 0.382, 0.500, 0.618, 0.786]
-FIBO_EXTENSIONS = [1.272, 1.618]
+FIBO_LEVELS = [
+    (0.0,   "0% — Low",  "#94a3b8"),   # slate  — anchor bottom
+    (0.236, "23.6%",     "#f97316"),   # orange
+    (0.382, "38.2%",     "#f97316"),
+    (0.500, "50.0%",     "#fbbf24"),   # amber  — midpoint
+    (0.618, "61.8%",     "#f97316"),
+    (0.786, "78.6%",     "#f97316"),
+    (1.0,   "100% — High","#94a3b8"),  # slate  — anchor top
+]
 
 
 def find_fibonacci_levels(df: pd.DataFrame) -> list[dict]:
     """
-    Find the last major swing (6-month high/low) and calculate
-    Fibonacci retracements (orange) and extensions (yellow).
+    Levels are measured upward from the 6-month swing low (0%) to the
+    swing high (100%): price = swing_low + ratio * range.
+    This is direction-neutral — the 0% and 100% anchors mark the extremes,
+    and the intermediate levels are the classic retracement zones.
     """
-    six_months = df.iloc[-126:]  # ~6 months of trading days
+    six_months = df.iloc[-126:]
     swing_high = float(six_months["High"].max())
-    swing_low = float(six_months["Low"].min())
+    swing_low  = float(six_months["Low"].min())
     swing_range = swing_high - swing_low
 
     if swing_range <= 0:
         return []
 
-    results = []
+    return [
+        {
+            "price": round(swing_low + ratio * swing_range, 4),
+            "label": label,
+            "color": color,
+        }
+        for ratio, label, color in FIBO_LEVELS
+    ]
 
-    # Retracements (from swing high down to low)
-    for ratio in FIBO_RETRACEMENTS:
-        price = swing_high - ratio * swing_range
-        results.append({
-            "price": round(price, 4),
-            "label": f"Fib {ratio*100:.1f}%",
-            "color": "#f97316",  # orange
-        })
 
-    # Extensions (beyond swing low, measuring from high)
-    for ratio in FIBO_EXTENSIONS:
-        price_below = swing_low - (ratio - 1.0) * swing_range
-        results.append({
-            "price": round(price_below, 4),
-            "label": f"Ext {ratio*100:.1f}%",
-            "color": "#eab308",  # yellow
-        })
+# ---------------------------------------------------------------------------
+# Pivot price markers (dots on chart at significant highs/lows)
+# ---------------------------------------------------------------------------
 
-    # Extension above swing high
-    for ratio in FIBO_EXTENSIONS:
-        price_above = swing_high + (ratio - 1.0) * swing_range
-        results.append({
-            "price": round(price_above, 4),
-            "label": f"Ext {ratio*100:.1f}% Up",
-            "color": "#eab308",  # yellow
-        })
+def find_pivot_markers(df: pd.DataFrame, lookback: int = 15, max_per_type: int = 10) -> list[dict]:
+    """
+    Return the date + price of the most significant local pivot highs and lows.
+    These are rendered as small dots on the price chart so the user can see
+    which price levels have historically acted as support/resistance.
+    """
+    highs  = df["High"].values
+    lows   = df["Low"].values
+    dates  = df.index
 
-    return results
+    pivot_highs = []
+    pivot_lows  = []
+
+    for i in range(lookback, len(df) - lookback):
+        if highs[i] == max(highs[i - lookback:i + lookback + 1]):
+            pivot_highs.append({
+                "date":  dates[i].strftime("%Y-%m-%d"),
+                "price": round(float(highs[i]), 2),
+                "type":  "high",
+            })
+        if lows[i] == min(lows[i - lookback:i + lookback + 1]):
+            pivot_lows.append({
+                "date":  dates[i].strftime("%Y-%m-%d"),
+                "price": round(float(lows[i]), 2),
+                "type":  "low",
+            })
+
+    # Keep only the most recent max_per_type of each
+    return pivot_highs[-max_per_type:] + pivot_lows[-max_per_type:]
 
 
 # ---------------------------------------------------------------------------
@@ -242,6 +264,31 @@ def calculate_trendlines(df: pd.DataFrame, lookback: int = 10) -> list[dict]:
 
 
 # ---------------------------------------------------------------------------
+# Stochastic Oscillator
+# ---------------------------------------------------------------------------
+
+def calculate_stochastic(df: pd.DataFrame, k_period: int = 14, d_period: int = 3) -> list[dict]:
+    """
+    Stochastic Oscillator: %K = (Close - LowestLow) / (HighestHigh - LowestLow) * 100
+    %D = 3-period SMA of %K.
+    """
+    low_min = df["Low"].rolling(window=k_period).min()
+    high_max = df["High"].rolling(window=k_period).max()
+    denom = high_max - low_min
+    k = ((df["Close"] - low_min) / denom.replace(0, np.nan)) * 100
+    d = k.rolling(window=d_period).mean()
+
+    results = []
+    for date, k_val, d_val in zip(df.index, k, d):
+        results.append({
+            "date": date.strftime("%Y-%m-%d"),
+            "k": None if pd.isna(k_val) else round(float(k_val), 2),
+            "d": None if pd.isna(d_val) else round(float(d_val), 2),
+        })
+    return results
+
+
+# ---------------------------------------------------------------------------
 # Master function
 # ---------------------------------------------------------------------------
 
@@ -252,8 +299,9 @@ def calculate_all_technical(df: pd.DataFrame) -> dict:
     ma_df = calculate_moving_averages(df)
     pivot_pts = calculate_pivot_points(df)
     trendlines = calculate_trendlines(df)
+    stochastic    = calculate_stochastic(df)
+    pivot_markers = find_pivot_markers(df)
 
-    # Build MA data as list of dicts
     ma_data = []
     for idx, row in ma_df.iterrows():
         ma_data.append({
@@ -269,4 +317,6 @@ def calculate_all_technical(df: pd.DataFrame) -> dict:
         "ma_data": ma_data,
         "pivot_points": pivot_pts,
         "trendlines": trendlines,
+        "stochastic": stochastic,
+        "pivot_markers": pivot_markers,
     }

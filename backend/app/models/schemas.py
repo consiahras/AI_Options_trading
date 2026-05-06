@@ -57,6 +57,18 @@ class Trendline(BaseModel):
     color: str
 
 
+class StochasticPoint(BaseModel):
+    date: str
+    k: Optional[float] = None
+    d: Optional[float] = None
+
+
+class PivotMarker(BaseModel):
+    date: str
+    price: float
+    type: str  # "high" or "low"
+
+
 class ChartResponse(BaseModel):
     ticker: str
     prices: list[PriceData]
@@ -65,6 +77,8 @@ class ChartResponse(BaseModel):
     pivot_points: Optional[PivotPoints] = None
     fibonacci_levels: list[FibonacciLevel]
     trendlines: list[Trendline]
+    stochastic: list[StochasticPoint] = []
+    pivot_markers: list[PivotMarker] = []
 
 
 class GreeksData(BaseModel):

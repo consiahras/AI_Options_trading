@@ -1,6 +1,6 @@
 import logging
 from fastapi import APIRouter, HTTPException
-from app.models.schemas import ChartResponse, PriceData, SRLevel, MAData, PivotPoints, FibonacciLevel, Trendline
+from app.models.schemas import ChartResponse, PriceData, SRLevel, MAData, PivotPoints, FibonacciLevel, Trendline, StochasticPoint, PivotMarker
 from app.services import data_fetcher, technical
 
 logger = logging.getLogger(__name__)
@@ -78,6 +78,16 @@ def get_chart(ticker: str):
         for tl in tech["trendlines"]
     ]
 
+    stochastic_data = [
+        StochasticPoint(date=s["date"], k=s["k"], d=s["d"])
+        for s in tech["stochastic"]
+    ]
+
+    pivot_marker_data = [
+        PivotMarker(date=m["date"], price=m["price"], type=m["type"])
+        for m in tech["pivot_markers"]
+    ]
+
     return ChartResponse(
         ticker=ticker,
         prices=prices,
@@ -86,4 +96,6 @@ def get_chart(ticker: str):
         pivot_points=pivot_points,
         fibonacci_levels=fibonacci_levels,
         trendlines=trendlines,
+        stochastic=stochastic_data,
+        pivot_markers=pivot_marker_data,
     )

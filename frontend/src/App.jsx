@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useMemo } from 'react'
 import Sidebar from './components/Sidebar'
 import StockChart from './components/StockChart'
 import AnalysisPanel from './components/AnalysisPanel'
@@ -28,17 +28,11 @@ export default function App() {
       api.getAnalysis(ticker),
     ])
 
-    if (chartResult.status === 'fulfilled') {
-      setChartData(chartResult.value)
-    } else {
-      setChartError(chartResult.reason?.message || 'Failed to load chart')
-    }
+    if (chartResult.status === 'fulfilled') setChartData(chartResult.value)
+    else setChartError(chartResult.reason?.message || 'Failed to load chart')
 
-    if (analysisResult.status === 'fulfilled') {
-      setAnalysisData(analysisResult.value)
-    } else {
-      setAnalysisError(analysisResult.reason?.message || 'Failed to load analysis')
-    }
+    if (analysisResult.status === 'fulfilled') setAnalysisData(analysisResult.value)
+    else setAnalysisError(analysisResult.reason?.message || 'Failed to load analysis')
 
     setChartLoading(false)
     setAnalysisLoading(false)
@@ -50,31 +44,17 @@ export default function App() {
       .then(data => {
         setStocks(data.stocks || [])
         const first = (data.stocks || [])[0]
-        if (first) {
-          setSelectedTicker(first.ticker)
-          loadStockData(first.ticker)
-        } else {
-          loadStockData('AAPL')
-        }
+        if (first) { setSelectedTicker(first.ticker); loadStockData(first.ticker) }
+        else loadStockData('AAPL')
       })
-      .catch(err => {
-        console.error('Failed to load stocks:', err)
-        loadStockData('AAPL')
-      })
+      .catch(() => loadStockData('AAPL'))
   }, [loadStockData])
 
-  const handleSelectTicker = (ticker) => {
-    setSelectedTicker(ticker)
-    loadStockData(ticker)
-  }
+  const handleSelectTicker = (ticker) => { setSelectedTicker(ticker); loadStockData(ticker) }
 
   const handleAddStock = async (ticker, listType) => {
-    try {
-      const data = await api.addStock(ticker, listType)
-      setStocks(data.stocks || [])
-    } catch (err) {
-      alert(err.message || 'Failed to add stock')
-    }
+    try { const data = await api.addStock(ticker, listType); setStocks(data.stocks || []) }
+    catch (err) { alert(err.message || 'Failed to add stock') }
   }
 
   const handleDeleteStock = async (ticker) => {
@@ -83,39 +63,58 @@ export default function App() {
       setStocks(data.stocks || [])
       if (ticker === selectedTicker) {
         const remaining = (data.stocks || [])[0]
-        if (remaining) {
-          handleSelectTicker(remaining.ticker)
-        } else {
-          setChartData(null)
-          setAnalysisData(null)
-        }
+        if (remaining) handleSelectTicker(remaining.ticker)
+        else { setChartData(null); setAnalysisData(null) }
       }
-    } catch (err) {
-      alert(err.message || 'Failed to delete stock')
-    }
+    } catch (err) { alert(err.message || 'Failed to delete stock') }
   }
 
+  const marketSignals = useMemo(() => {
+    if (!chartData) return null
+    const maData = (chartData.ma_data || []).filter(m => m.ma50 != null && m.ma200 != null)
+    const lastMA = maData[maData.length - 1]
+    const recent10 = maData.slice(-10)
+    let crossType = null, crossRecent = false
+    if (lastMA) {
+      crossType = lastMA.ma50 > lastMA.ma200 ? 'golden' : 'death'
+      for (let i = 1; i < recent10.length; i++) {
+        const p = recent10[i - 1], c = recent10[i]
+        if ((p.ma50 < p.ma200 && c.ma50 > c.ma200) || (p.ma50 > p.ma200 && c.ma50 < c.ma200)) { crossRecent = true; break }
+      }
+    }
+    const stochData = (chartData.stochastic || []).filter(s => s.k != null && s.d != null)
+    const lastS = stochData[stochData.length - 1]
+    const prevS = stochData[stochData.length - 2]
+    let stochSignal = 'WAIT', stochReason = 'Neutral zone'
+    const stochK = lastS?.k ?? null
+    if (lastS) {
+      if (lastS.k > 80)       { stochSignal = 'SELL'; stochReason = 'Overbought' }
+      else if (lastS.k < 20)  { stochSignal = 'BUY';  stochReason = 'Oversold' }
+      else if (prevS && prevS.k < prevS.d && lastS.k > lastS.d) { stochSignal = 'BUY';  stochReason = '%K crossed above %D' }
+      else if (prevS && prevS.k > prevS.d && lastS.k < lastS.d) { stochSignal = 'SELL'; stochReason = '%K crossed below %D' }
+    }
+    return { crossType, crossRecent, ma50: lastMA?.ma50, ma200: lastMA?.ma200, stochSignal, stochReason, stochK }
+  }, [chartData])
+
   return (
-    <div className="flex flex-col h-screen bg-gray-950 text-white overflow-hidden">
+    <div className="flex flex-col h-screen bg-white text-gray-900 overflow-hidden">
       {/* Header */}
-      <header className="flex-none flex items-center justify-between px-6 py-3 bg-gray-900 border-b border-gray-800 z-10">
+      <header className="flex-none flex items-center justify-between px-6 py-3 bg-white border-b border-gray-200 z-10">
         <div className="flex items-center gap-3">
-          <div className="w-8 h-8 rounded-lg bg-blue-600 flex items-center justify-center text-sm font-bold">
+          <div className="w-8 h-8 rounded-lg bg-blue-600 flex items-center justify-center text-sm font-bold text-white">
             AI
           </div>
-          <h1 className="text-lg font-semibold tracking-tight">AI Options Trading</h1>
+          <h1 className="text-lg font-semibold tracking-tight text-gray-900">AI Options Trading</h1>
         </div>
-        <div className="text-xs text-gray-400">
-          {lastUpdated
-            ? `Last updated: ${lastUpdated.toLocaleTimeString()}`
-            : 'Loading…'}
+        <div className="text-xs text-gray-500">
+          {lastUpdated ? `Last updated: ${lastUpdated.toLocaleTimeString()}` : 'Loading…'}
         </div>
       </header>
 
       {/* Body */}
       <div className="flex flex-1 overflow-hidden">
         {/* Sidebar */}
-        <aside className="flex-none w-60 bg-gray-900 border-r border-gray-800 overflow-y-auto">
+        <aside className="flex-none w-60 bg-gray-50 border-r border-gray-200 overflow-y-auto">
           <Sidebar
             stocks={stocks}
             selectedTicker={selectedTicker}
@@ -126,24 +125,27 @@ export default function App() {
         </aside>
 
         {/* Main content */}
-        <main className="flex-1 flex flex-col overflow-hidden">
+        <main className="flex-1 flex flex-col overflow-hidden bg-white">
           {/* Chart area */}
-          <div className="flex-none h-[420px] border-b border-gray-800 bg-gray-950 p-4">
+          <div className="flex-none h-[580px] border-b border-gray-200 bg-white p-3">
             <StockChart
               ticker={selectedTicker}
               data={chartData}
               loading={chartLoading}
               error={chartError}
+              stochSignal={marketSignals?.stochSignal}
+              stochReason={marketSignals?.stochReason}
             />
           </div>
 
           {/* Analysis panel */}
-          <div className="flex-1 overflow-y-auto bg-gray-900 p-4">
+          <div className="flex-1 overflow-y-auto bg-white p-4">
             <AnalysisPanel
               ticker={selectedTicker}
               data={analysisData}
               loading={analysisLoading}
               error={analysisError}
+              marketSignals={marketSignals}
             />
           </div>
         </main>

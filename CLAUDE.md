@@ -85,14 +85,24 @@ Each overlay type has a distinct colour. All are rendered on the same chart simu
 
 | Level Type | Colour | Method |
 |---|---|---|
-| Horizontal S/R | Red (resistance) / Green (support) | Local price pivot highs/lows |
-| Fibonacci Retracements | Orange | 23.6%, 38.2%, 50%, 61.8%, 78.6% of last major swing |
-| Fibonacci Extensions | Yellow | 127.2%, 161.8% above/below swing |
+| Horizontal S/R | Red (resistance) / Green (support) | Local price pivot highs/lows — subtle dashes, low opacity |
+| Fibonacci Retracements | Orange | 38.2%, 50%, 61.8% of last 6-month swing — with right-side price label |
 | Moving Average 50 | Blue | 50-day SMA |
 | Moving Average 100 | Purple | 100-day SMA |
 | Moving Average 200 | White / Light grey | 200-day SMA |
-| Pivot Points | Cyan | Classic daily pivot (P, R1, R2, S1, S2) |
-| Trendlines | Magenta | Least-squares fit through pivot highs/lows |
+| Pivot Points | Cyan | Calculated but not displayed (reduces clutter) |
+| Trendlines | Magenta | Calculated but not displayed (reduces clutter) |
+
+### Fibonacci Label Format
+Right side of chart shows: `"61.8% $215.00"` — ratio and absolute price.
+Only 3 key retracement levels shown (38.2%, 50%, 61.8%). Extensions removed for clarity.
+
+### Stochastic Oscillator (sub-chart)
+A smaller chart below the main price chart shows the 14-period Stochastic Oscillator:
+- **%K** (yellow) — fast line
+- **%D** (purple) — 3-period SMA of %K (signal line)
+- Overbought zone: 80 (red dashed line)
+- Oversold zone: 20 (green dashed line)
 
 ---
 
