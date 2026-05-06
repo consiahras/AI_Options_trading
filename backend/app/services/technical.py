@@ -264,6 +264,61 @@ def calculate_trendlines(df: pd.DataFrame, lookback: int = 10) -> list[dict]:
 
 
 # ---------------------------------------------------------------------------
+# Cluster-based Support / Resistance (yellow edge ticks on chart)
+# ---------------------------------------------------------------------------
+
+def find_cluster_sr_levels(
+    df: pd.DataFrame,
+    tolerance: float = 0.015,
+    min_touches: int = 2,
+    max_levels: int = 12,
+) -> list[dict]:
+    """
+    Identify price levels where local pivots cluster together, indicating
+    the market has historically respected that price multiple times.
+
+    1. Detect local pivot highs (lookback=5) and lows across full year.
+    2. Cluster pivots within tolerance (1.5%) of each other.
+    3. Keep only clusters touched >= min_touches times.
+    """
+    highs    = df["High"].values
+    lows     = df["Low"].values
+    lookback = 5
+
+    pivot_prices: list[float] = []
+    for i in range(lookback, len(df) - lookback):
+        if highs[i] == max(highs[i - lookback:i + lookback + 1]):
+            pivot_prices.append(float(highs[i]))
+        if lows[i] == min(lows[i - lookback:i + lookback + 1]):
+            pivot_prices.append(float(lows[i]))
+
+    if len(pivot_prices) < min_touches:
+        return []
+
+    clusters: list[dict] = []
+    for price in sorted(pivot_prices):
+        merged = False
+        for c in clusters:
+            if abs(price - c["center"]) / c["center"] <= tolerance:
+                c["prices"].append(price)
+                c["center"] = float(np.mean(c["prices"]))
+                merged = True
+                break
+        if not merged:
+            clusters.append({"center": price, "prices": [price]})
+
+    significant = [
+        {"price": round(c["center"], 2), "touches": len(c["prices"])}
+        for c in clusters
+        if len(c["prices"]) >= min_touches
+    ]
+
+    # Most-touched first, cap, then sort by price for chart rendering
+    significant.sort(key=lambda x: -x["touches"])
+    return sorted(significant[:max_levels], key=lambda x: x["price"])
+
+
+# ---------------------------------------------------------------------------
 # Stochastic Oscillator
 # ---------------------------------------------------------------------------
 
@@ -294,13 +349,14 @@ def calculate_stochastic(df: pd.DataFrame, k_period: int = 14, d_period: int = 3
 
 def calculate_all_technical(df: pd.DataFrame) -> dict:
     """Run all technical analysis and return structured results."""
-    sr_levels = find_horizontal_sr(df)
-    fib_levels = find_fibonacci_levels(df)
-    ma_df = calculate_moving_averages(df)
-    pivot_pts = calculate_pivot_points(df)
-    trendlines = calculate_trendlines(df)
-    stochastic    = calculate_stochastic(df)
-    pivot_markers = find_pivot_markers(df)
+    sr_levels      = find_horizontal_sr(df)
+    fib_levels     = find_fibonacci_levels(df)
+    ma_df          = calculate_moving_averages(df)
+    pivot_pts      = calculate_pivot_points(df)
+    trendlines     = calculate_trendlines(df)
+    stochastic     = calculate_stochastic(df)
+    pivot_markers  = find_pivot_markers(df)
+    cluster_sr     = find_cluster_sr_levels(df)
 
     ma_data = []
     for idx, row in ma_df.iterrows():
@@ -312,11 +368,12 @@ def calculate_all_technical(df: pd.DataFrame) -> dict:
         })
 
     return {
-        "sr_levels": sr_levels,
+        "sr_levels":       sr_levels,
         "fibonacci_levels": fib_levels,
-        "ma_data": ma_data,
-        "pivot_points": pivot_pts,
-        "trendlines": trendlines,
-        "stochastic": stochastic,
-        "pivot_markers": pivot_markers,
+        "ma_data":         ma_data,
+        "pivot_points":    pivot_pts,
+        "trendlines":      trendlines,
+        "stochastic":      stochastic,
+        "pivot_markers":   pivot_markers,
+        "cluster_sr":      cluster_sr,
     }

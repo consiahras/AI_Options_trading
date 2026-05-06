@@ -69,6 +69,11 @@ class PivotMarker(BaseModel):
     type: str  # "high" or "low"
 
 
+class ClusterSRLevel(BaseModel):
+    price: float
+    touches: int  # how many pivot clusters hit this level
+
+
 class ChartResponse(BaseModel):
     ticker: str
     prices: list[PriceData]
@@ -79,6 +84,7 @@ class ChartResponse(BaseModel):
     trendlines: list[Trendline]
     stochastic: list[StochasticPoint] = []
     pivot_markers: list[PivotMarker] = []
+    cluster_sr_levels: list[ClusterSRLevel] = []
 
 
 class GreeksData(BaseModel):

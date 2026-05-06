@@ -15,6 +15,21 @@ import { useMemo, useState, useRef, useEffect, useCallback } from 'react'
 
 const FIB_BAND_COLORS = ['#3b82f6', '#06b6d4', '#22c55e', '#eab308', '#f97316', '#ef4444']
 
+// Short yellow tick at the right edge of the plot area for cluster S/R levels
+const ClusterSRTick = ({ viewBox, touches }) => {
+  if (!viewBox) return null
+  const { x, y, width } = viewBox
+  const rightX = x + width
+  const tickW = touches >= 4 ? 30 : 22   // wider tick = more significant level
+  const sw    = touches >= 4 ? 2 : 1.5
+  return (
+    <line
+      x1={rightX - 8} y1={y} x2={rightX + tickW} y2={y}
+      stroke="#eab308" strokeWidth={sw} strokeOpacity={0.9}
+    />
+  )
+}
+
 const PivotHighDot = ({ cx, cy, value }) => {
   if (value == null || cx == null || cy == null) return null
   const label = `$${value.toFixed(0)}`
@@ -207,7 +222,8 @@ export default function StockChart({ ticker, data, loading, error, stochSignal, 
     return `${parts[1]}/${parts[2].substring(0, 2)}`
   }
 
-  const fibLevels = useMemo(() => data?.fibonacci_levels || [], [data])
+  const fibLevels      = useMemo(() => data?.fibonacci_levels   || [], [data])
+  const clusterSRLevels = useMemo(() => data?.cluster_sr_levels || [], [data])
 
   // ── Render guards ─────────────────────────────────────────────────────────
   if (loading) return <Spinner />
@@ -225,9 +241,17 @@ export default function StockChart({ ticker, data, loading, error, stochSignal, 
         <h2 className="text-sm font-semibold text-gray-700">
           {ticker} — Price Chart (1Y Daily)
         </h2>
-        <span className="text-[10px] text-gray-500">
-          Scroll to zoom · Drag to pan · showing {visiblePoints}/{totalPoints} days
-        </span>
+        <div className="flex items-center gap-4">
+          {clusterSRLevels.length > 0 && (
+            <span className="flex items-center gap-1 text-[10px] text-yellow-600">
+              <svg width="18" height="4"><line x1="0" y1="2" x2="18" y2="2" stroke="#eab308" strokeWidth="2"/></svg>
+              Historical S/R (2+ touches)
+            </span>
+          )}
+          <span className="text-[10px] text-gray-500">
+            Scroll to zoom · Drag to pan · {visiblePoints}/{totalPoints} days
+          </span>
+        </div>
       </div>
 
       {/* ── Main price chart ─────────────────────────────────────────────── */}
@@ -281,6 +305,13 @@ export default function StockChart({ ticker, data, loading, error, stochSignal, 
                     fontSize: 9, fill: col, dx: 6 }} />
               )
             })}
+
+            {/* Cluster S/R — yellow tick marks at right edge only */}
+            {clusterSRLevels.map((lvl, i) => (
+              <ReferenceLine key={`csr-${i}`} y={lvl.price} stroke="transparent"
+                label={<ClusterSRTick touches={lvl.touches} />}
+                ifOverflow="visible" />
+            ))}
 
             {/* Pivot high/low markers */}
             <Line dataKey="pivotHigh" stroke="none" dot={<PivotHighDot />}

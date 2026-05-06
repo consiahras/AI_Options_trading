@@ -1,11 +1,27 @@
+import { useRef, useState } from 'react'
+
 function Tip({ text, children }) {
+  const [pos, setPos] = useState(null)
+  const ref = useRef(null)
+
+  const show = () => {
+    if (!ref.current) return
+    const r = ref.current.getBoundingClientRect()
+    setPos({ x: r.left + r.width / 2, y: r.top })
+  }
+
   return (
-    <span className="relative group cursor-help inline-block">
+    <span ref={ref} className="cursor-help inline-block" onMouseEnter={show} onMouseLeave={() => setPos(null)}>
       {children}
-      <span className="pointer-events-none absolute z-50 opacity-0 group-hover:opacity-100 transition-opacity duration-150 bottom-full left-1/2 -translate-x-1/2 mb-2 w-56 bg-gray-900 text-white text-xs rounded-lg px-3 py-2 shadow-xl text-center leading-relaxed">
-        {text}
-        <span className="absolute top-full left-1/2 -translate-x-1/2 border-[5px] border-transparent border-t-gray-900" />
-      </span>
+      {pos && (
+        <div
+          className="pointer-events-none w-56 bg-gray-900 text-white text-xs rounded-lg px-3 py-2 shadow-xl text-center leading-relaxed"
+          style={{ position: 'fixed', left: pos.x, top: pos.y - 8, transform: 'translate(-50%, -100%)', zIndex: 9999 }}
+        >
+          {text}
+          <div className="absolute top-full left-1/2 -translate-x-1/2 border-[5px] border-transparent border-t-gray-900" />
+        </div>
+      )}
     </span>
   )
 }
