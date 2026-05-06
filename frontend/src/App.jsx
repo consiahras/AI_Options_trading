@@ -125,9 +125,9 @@ export default function App() {
         </aside>
 
         {/* Main content */}
-        <main className="flex-1 flex flex-col overflow-hidden bg-slate-100">
-          {/* Chart area */}
-          <div className="flex-none h-[580px] border-b border-gray-200 bg-white p-3">
+        <main className="flex-1 flex flex-row overflow-hidden bg-slate-100">
+          {/* Chart column — 70% of viewport width */}
+          <div className="flex-none w-[70vw] h-full border-r border-gray-200 bg-white p-3">
             <StockChart
               ticker={selectedTicker}
               data={chartData}
