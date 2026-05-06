@@ -256,7 +256,7 @@ export default function StockChart({ ticker, data, loading, error, stochSignal, 
             <CartesianGrid strokeDasharray="3 3" stroke={GRID_COLOR} />
             <XAxis dataKey="date" ticks={xAxisTicks} tick={AXIS_TICK}
               tickFormatter={tickFormatter} axisLine={AXIS_LINE} tickLine={false} />
-            <YAxis domain={['auto', 'auto']} tick={AXIS_TICK}
+            <YAxis domain={['auto', (dataMax) => dataMax * 1.01]} tick={AXIS_TICK}
               tickFormatter={v => `$${v}`} axisLine={AXIS_LINE} tickLine={false} width={60} />
             <Tooltip content={<PriceTooltip />} />
             <Legend wrapperStyle={{ fontSize: '11px', color: '#6b7280' }}
