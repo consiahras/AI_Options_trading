@@ -179,7 +179,7 @@ export default function AnalysisPanel({ ticker, data, loading, error, marketSign
                 <Tip text="The options strategy — direction and premium type determine when each is appropriate.">Strategy</Tip>
               </th>
               <th className="text-right px-4 py-3 font-medium">
-                <Tip text="Theoretical premium from Black-Scholes at the at-the-money strike with 30 days to expiry. Buyers pay this; sellers collect it.">Premium (30d ATM)</Tip>
+                <Tip text="Theoretical premium from Black-Scholes at the strategy's specific strike with 30 days to expiry. Strike is chosen based on nearby S/R or Fibonacci levels. Buyers pay this; sellers collect it.">Premium (30d)</Tip>
               </th>
               <th className="text-center px-4 py-3 font-medium">
                 <Tip text="IV Rank (0–100): where current implied volatility sits in its 52-week range. Low (&lt;30) = cheap premiums, favour buying. High (&gt;50) = expensive premiums, favour selling.">IVR Signal</Tip>
@@ -196,7 +196,12 @@ export default function AnalysisPanel({ ticker, data, loading, error, marketSign
             {strategies?.map((s, i) => (
               <tr key={i} className="hover:bg-gray-50 transition-colors">
                 <td className="px-4 py-3 font-medium text-gray-900">{s.strategy}</td>
-                <td className="px-4 py-3 text-right font-mono text-gray-700">{s.premium}</td>
+                <td className="px-4 py-3 text-right">
+                  <span className="font-mono text-gray-700 block">{s.premium}</span>
+                  {s.strike_label && (
+                    <span className="text-[10px] text-gray-400 block">{s.strike_label}</span>
+                  )}
+                </td>
                 <td className="px-4 py-3 text-center text-xs">
                   <span className={`inline-block px-2 py-0.5 rounded-full ${
                     s.ivr_signal.includes('✓') ? 'bg-green-100 text-green-700'

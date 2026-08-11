@@ -50,13 +50,18 @@ function OwnedRow({ stock, selected, onSelect, onDelete, onUpdate }) {
       selected ? 'bg-blue-50 border-blue-300' : 'bg-white border-gray-200 hover:border-gray-300'
     }`}>
       {/* Ticker row */}
-      <div className="flex items-center justify-between px-2.5 pt-2 pb-1 cursor-pointer" onClick={() => onSelect(stock.ticker)}>
-        <span className={`text-sm font-semibold ${selected ? 'text-blue-700' : 'text-gray-800'}`}>
-          {stock.ticker}
-        </span>
+      <div className="flex items-start justify-between px-2.5 pt-2 pb-1 cursor-pointer" onClick={() => onSelect(stock.ticker)}>
+        <div>
+          <span className={`text-sm font-semibold ${selected ? 'text-blue-700' : 'text-gray-800'}`}>
+            {stock.ticker}
+          </span>
+          {stock.sector && (
+            <p className="text-[9px] text-gray-400 leading-tight mt-0.5">{stock.sector}</p>
+          )}
+        </div>
         <button
           onClick={e => { e.stopPropagation(); onDelete(stock.ticker) }}
-          className="text-gray-300 hover:text-red-500 transition-colors text-xs px-0.5"
+          className="text-gray-300 hover:text-red-500 transition-colors text-xs px-0.5 mt-0.5"
           title="Remove"
         >✕</button>
       </div>
@@ -91,13 +96,18 @@ function WatchlistRow({ stock, selected, onSelect, onDelete, onUpdate }) {
       selected ? 'bg-blue-50 border-blue-300' : 'bg-white border-gray-200 hover:border-gray-300'
     }`}>
       {/* Ticker row */}
-      <div className="flex items-center justify-between px-2.5 pt-2 pb-1 cursor-pointer" onClick={() => onSelect(stock.ticker)}>
-        <span className={`text-sm font-semibold ${selected ? 'text-blue-700' : 'text-gray-800'}`}>
-          {stock.ticker}
-        </span>
+      <div className="flex items-start justify-between px-2.5 pt-2 pb-1 cursor-pointer" onClick={() => onSelect(stock.ticker)}>
+        <div>
+          <span className={`text-sm font-semibold ${selected ? 'text-blue-700' : 'text-gray-800'}`}>
+            {stock.ticker}
+          </span>
+          {stock.sector && (
+            <p className="text-[9px] text-gray-400 leading-tight mt-0.5">{stock.sector}</p>
+          )}
+        </div>
         <button
           onClick={e => { e.stopPropagation(); onDelete(stock.ticker) }}
-          className="text-gray-300 hover:text-red-500 transition-colors text-xs px-0.5"
+          className="text-gray-300 hover:text-red-500 transition-colors text-xs px-0.5 mt-0.5"
           title="Remove"
         >✕</button>
       </div>

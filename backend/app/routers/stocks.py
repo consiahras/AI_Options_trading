@@ -23,13 +23,15 @@ def _load_stocks() -> list[StockEntry]:
                     ticker = row.get('ticker', '').strip().upper()
                     if not ticker:
                         continue
-                    qty  = row.get('quantity', '').strip()
-                    abp  = row.get('avg_buy_price', '').strip()
+                    qty    = row.get('quantity', '').strip()
+                    abp    = row.get('avg_buy_price', '').strip()
+                    sector = row.get('sector', '').strip() or None
                     stocks.append(StockEntry(
                         ticker=ticker,
                         list_type='owned',
                         quantity=float(qty)  if qty  else None,
                         avg_buy_price=float(abp) if abp  else None,
+                        sector=sector,
                     ))
         except Exception as e:
             logger.error(f"Failed to load portfolio.csv: {e}")
@@ -41,11 +43,13 @@ def _load_stocks() -> list[StockEntry]:
                     ticker = row.get('ticker', '').strip().upper()
                     if not ticker:
                         continue
-                    tp = row.get('target_price', '').strip()
+                    tp     = row.get('target_price', '').strip()
+                    sector = row.get('sector', '').strip() or None
                     stocks.append(StockEntry(
                         ticker=ticker,
                         list_type='watchlist',
                         target_price=float(tp) if tp else None,
+                        sector=sector,
                     ))
         except Exception as e:
             logger.error(f"Failed to load watchlist.csv: {e}")
@@ -61,11 +65,12 @@ def _save_stocks(stocks: list[StockEntry]) -> None:
 
     try:
         with open(PORTFOLIO_FILE, 'w', newline='') as f:
-            w = csv.DictWriter(f, fieldnames=['ticker', 'quantity', 'avg_buy_price'])
+            w = csv.DictWriter(f, fieldnames=['ticker', 'sector', 'quantity', 'avg_buy_price'])
             w.writeheader()
             for s in owned:
                 w.writerow({
                     'ticker':        s.ticker,
+                    'sector':        s.sector or '',
                     'quantity':      '' if s.quantity       is None else s.quantity,
                     'avg_buy_price': '' if s.avg_buy_price  is None else s.avg_buy_price,
                 })
@@ -74,11 +79,12 @@ def _save_stocks(stocks: list[StockEntry]) -> None:
 
     try:
         with open(WATCHLIST_FILE, 'w', newline='') as f:
-            w = csv.DictWriter(f, fieldnames=['ticker', 'target_price'])
+            w = csv.DictWriter(f, fieldnames=['ticker', 'sector', 'target_price'])
             w.writeheader()
             for s in watchlist:
                 w.writerow({
                     'ticker':       s.ticker,
+                    'sector':       s.sector or '',
                     'target_price': '' if s.target_price is None else s.target_price,
                 })
     except Exception as e:
@@ -99,7 +105,7 @@ def add_stock(entry: StockEntry):
     ticker = entry.ticker.upper()
     if any(s.ticker == ticker for s in _stocks):
         raise HTTPException(status_code=409, detail=f"{ticker} already in list")
-    _stocks.append(StockEntry(ticker=ticker, list_type=entry.list_type))
+    _stocks.append(StockEntry(ticker=ticker, list_type=entry.list_type, sector=entry.sector))
     _save_stocks(_stocks)
     return StockListResponse(stocks=_stocks)
 

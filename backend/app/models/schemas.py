@@ -8,6 +8,7 @@ class StockEntry(BaseModel):
     avg_buy_price: Optional[float] = None
     quantity: Optional[float] = None
     target_price: Optional[float] = None
+    sector: Optional[str] = None
 
 
 class StockUpdateRequest(BaseModel):
@@ -109,6 +110,7 @@ class StrategyRecommendation(BaseModel):
     strategy: str
     premium: str
     premium_value: float
+    strike_label: str = ""
     ivr_signal: str
     sr_context: str
     recommendation: str

@@ -39,9 +39,14 @@ export const api = {
       return r.json()
     }),
 
-  getAnalysis: (ticker) =>
-    fetch(`${BASE_URL}/api/analysis/${ticker}`).then(r => {
+  getAnalysis: (ticker, ctx = {}) => {
+    const params = new URLSearchParams()
+    if (ctx.list_type)              params.set('list_type',    ctx.list_type)
+    if (ctx.target_price != null)   params.set('target_price', ctx.target_price)
+    const qs = params.toString()
+    return fetch(`${BASE_URL}/api/analysis/${ticker}${qs ? '?' + qs : ''}`).then(r => {
       if (!r.ok) throw new Error(`Failed to fetch analysis for ${ticker}: ${r.status}`)
       return r.json()
-    }),
+    })
+  },
 }

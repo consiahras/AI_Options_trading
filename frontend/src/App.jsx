@@ -15,7 +15,7 @@ export default function App() {
   const [analysisError, setAnalysisError] = useState(null)
   const [lastUpdated, setLastUpdated] = useState(null)
 
-  const loadStockData = useCallback(async (ticker) => {
+  const loadStockData = useCallback(async (ticker, ctx = {}) => {
     setChartLoading(true)
     setAnalysisLoading(true)
     setChartError(null)
@@ -25,7 +25,7 @@ export default function App() {
 
     const [chartResult, analysisResult] = await Promise.allSettled([
       api.getChart(ticker),
-      api.getAnalysis(ticker),
+      api.getAnalysis(ticker, ctx),
     ])
 
     if (chartResult.status === 'fulfilled') setChartData(chartResult.value)
@@ -44,13 +44,22 @@ export default function App() {
       .then(data => {
         setStocks(data.stocks || [])
         const first = (data.stocks || [])[0]
-        if (first) { setSelectedTicker(first.ticker); loadStockData(first.ticker) }
-        else loadStockData('AAPL')
+        if (first) {
+          setSelectedTicker(first.ticker)
+          loadStockData(first.ticker, { list_type: first.list_type, target_price: first.target_price })
+        } else {
+          loadStockData('AAPL')
+        }
       })
       .catch(() => loadStockData('AAPL'))
   }, [loadStockData])
 
-  const handleSelectTicker = (ticker) => { setSelectedTicker(ticker); loadStockData(ticker) }
+  const handleSelectTicker = (ticker) => {
+    setSelectedTicker(ticker)
+    const stock = stocks.find(s => s.ticker === ticker)
+    const ctx = stock ? { list_type: stock.list_type, target_price: stock.target_price } : {}
+    loadStockData(ticker, ctx)
+  }
 
   const handleAddStock = async (ticker, listType) => {
     try { const data = await api.addStock(ticker, listType); setStocks(data.stocks || []) }

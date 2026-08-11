@@ -98,6 +98,23 @@ def vega(S: float, K: float, T: float, r: float, sigma: float) -> float:
     return S * norm.pdf(d1) * math.sqrt(T) / 100.0
 
 
+def calculate_at_strike(S: float, K: float, sigma: float) -> dict:
+    """Calculate call/put premiums and deltas at a specific strike (30-day expiry)."""
+    r  = RISK_FREE_RATE
+    t  = T
+    cp = call_price(S, K, t, r, sigma)
+    pp = put_price(S, K, t, r, sigma)
+    dc = delta_call(S, K, t, r, sigma)
+    dp = delta_put(S, K, t, r, sigma)
+    return {
+        "strike":       round(K, 2),
+        "call_premium": round(cp, 4),
+        "put_premium":  round(pp, 4),
+        "delta_call":   round(dc, 4),
+        "delta_put":    round(dp, 4),
+    }
+
+
 def calculate_all(S: float, sigma: float) -> dict:
     """Calculate all premiums and Greeks for ATM strike at 30 days."""
     K = _round_to_strike(S)

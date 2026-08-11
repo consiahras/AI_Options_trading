@@ -1,5 +1,8 @@
-ticker,quantity,avg_buy_price
-NKE,100,43.6
-NVO,900,50.2
-S,800,14.1
-PINS,100,19.7
+ticker,sector,quantity,avg_buy_price
+NKE,Consumer Discretionary,100.0,43.6
+NVO,Healthcare - Big Pharma,900.0,50.2
+S,Cybersecurity,800.0,14.1
+PINS,Technology - Social Media,100.0,19.7
+FLO,,,
+T,,,
+DAL,,,
